@@ -136,6 +136,7 @@
       stasisDamageReduction: 0.7
       healingThreshold: 50.0
       stasisHealth: 50.0
-
-# Chirp!
+    - type: ActionGrant
+      actions:
+      - ActionHealingNanites
 # Chirp!
