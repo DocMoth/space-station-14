@@ -98,6 +98,9 @@
   - type: Clickable
   - type: Damageable
   - type: ChameleonDisguise
+  - type: Tag
+    tags:
+      - HideContextMenu
 
 # actions
 - type: entity
