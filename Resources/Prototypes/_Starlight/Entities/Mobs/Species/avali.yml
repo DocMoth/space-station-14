@@ -138,5 +138,15 @@
       stasisHealth: 50.0
     - type: ActionGrant
       actions:
-      - ActionHealingNanites
+      - ActionNexusStore
+    - type: Store
+      name: store-preset-name-nanites
+      categories:
+      - AvaliNanites
+      currencyWhitelist:
+      - Configuration
+      balance:
+        Configuration: 3
+
+# Chirp!
 # Chirp!
