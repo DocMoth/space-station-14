@@ -1,10 +1,8 @@
 using Content.Shared._Starlight.Actions.EntitySystems;
-using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._Starlight.Actions.Components;
 
@@ -25,19 +23,6 @@ public sealed partial class StasisComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public FixedPoint2 DamageTaken;
-
-    /// <summary>
-    /// How much healing the stasis has done.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public FixedPoint2 DamageHealed;
-
-    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer))]
-    [AutoNetworkedField, AutoPausedField]
-    public TimeSpan NextHeal = TimeSpan.Zero;
-
-    [DataField, AutoNetworkedField]
-    public TimeSpan UpdateInterval = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// Whether the entity should be visible. This is synced to ensure proper PVS handling.
@@ -74,30 +59,6 @@ public sealed partial class StasisComponent : Component
     /// </summary>
     [DataField]
     public float StasisHealth = 50f;
-
-    /// <summary>
-    /// The threshold of healing before the stasis ends.
-    /// </summary>
-    [DataField]
-    public FixedPoint2 HealingThreshold = 50f;
-
-    /// <summary>
-    /// How much the entity gets healed per update interval.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public DamageSpecifier HealingPerUpdate = new();
-
-    /// <summary>
-    /// How much bleed is healed per update interval
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public float BleedHealPerUpdate = 1.0f;
-
-    /// <summary>
-    /// How much extra healing is done when the entity is in a critical state.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public float CritHealingModifier = 2.0f;
 
     /// <summary>
     /// Flat percentage damage resistance against ALL positive damage taken (Healing is not effected)
@@ -164,4 +125,10 @@ public sealed partial class StasisComponent : Component
     /// This is used to properly track and clean up the visual effect.
     /// </summary>
     [DataField] public EntityUid? ClientEnterEffectEntity;
+
+    /// <summary>
+    /// Components applied when you enter stasis.
+    /// </summary>
+    [DataField]
+    public ComponentRegistry StasisComponents = new();
 }

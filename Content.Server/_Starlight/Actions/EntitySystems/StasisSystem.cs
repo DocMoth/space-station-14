@@ -1,26 +1,19 @@
 using Content.Shared.Actions;
 using Content.Shared.Damage;
-using Content.Shared.Damage.Components;
 using Robust.Shared.Timing;
 using Content.Shared.Mobs;
 using Content.Shared.FixedPoint;
 using Content.Shared._Starlight.Actions.EntitySystems;
 using Content.Shared._Starlight.Actions.Components;
 using Content.Shared._Starlight.Actions.Events;
-using Content.Shared.Mobs.Systems;
 using Robust.Shared.Player;
 using Content.Shared.Damage.Systems;
-using Content.Server._Starlight.Medical.Body.Systems;
 
 namespace Content.Server._Starlight.Actions.EntitySystems;
 
 public sealed partial class StasisSystem : SharedStasisSystem
 {
-    [Dependency] private DamageableSystem _damageable = default!;
-    [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedActionsSystem _actionsSystem = default!;
-    [Dependency] private MobStateSystem _mobState = default!;
-    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -33,45 +26,6 @@ public sealed partial class StasisSystem : SharedStasisSystem
         SubscribeLocalEvent<StasisComponent, PrepareStasisActionEvent>(OnPrepareStasisStart);
         SubscribeLocalEvent<StasisComponent, EnterStasisActionEvent>(OnEnterStasisStart);
         SubscribeLocalEvent<StasisComponent, ExitStasisActionEvent>(OnExitStasisStart);
-    }
-
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-
-        var curTime = _timing.CurTime;
-
-        var query = EntityQueryEnumerator<StasisComponent>();
-        while (query.MoveNext(out var uid, out var comp))
-        {
-            if (comp.NextHeal > curTime || !comp.IsInStasis)
-                continue;
-
-            if (!TryComp<DamageableComponent>(uid, out var damageComponent))
-                continue;
-
-            // Negative because your healing
-            var modifier = _mobState.IsCritical(uid) ? -comp.CritHealingModifier : -1.0f;
-            var oldDamageCompTotal = damageComponent.TotalDamage;
-
-            _damageable.TryChangeDamage(uid, modifier * comp.HealingPerUpdate, true, origin: uid);
-
-            _bloodstream.TryModifyBleedAmount(uid, modifier * comp.BleedHealPerUpdate);
-
-            var amountHealed = oldDamageCompTotal - damageComponent.TotalDamage;
-            if(amountHealed > 0)
-            {
-                comp.DamageHealed += amountHealed;
-            }
-
-            // Stasis has healed all that it can, only accounts for damage, not blood healing.
-            if(comp.DamageHealed >= comp.HealingThreshold)
-            {
-                RaiseLocalEvent(uid, new ExitStasisActionEvent());
-            }
-
-            comp.NextHeal += comp.UpdateInterval;
-        }
     }
 
     private void OnMapInit(EntityUid uid, StasisComponent comp, MapInitEvent args)
@@ -121,8 +75,6 @@ public sealed partial class StasisSystem : SharedStasisSystem
 
     private void OnPrepareStasisStart(EntityUid uid, StasisComponent comp, PrepareStasisActionEvent args)
     {
-        EnsureComp<StasisFrozenComponent>(uid);
-
         _actionsSystem.RemoveAction(uid, comp.EnterStasisActionEntity);
         _actionsSystem.AddAction(uid, ref comp.ExitStasisActionEntity, comp.ExitStasisAction);
         _actionsSystem.SetCooldown(comp.ExitStasisActionEntity, comp.StasisEnterEffectLifetime);
@@ -146,10 +98,10 @@ public sealed partial class StasisSystem : SharedStasisSystem
     private void OnEnterStasisStart(EntityUid uid, StasisComponent comp, EnterStasisActionEvent args)
     {
         comp.IsInStasis = true;
-        comp.NextHeal = _timing.CurTime;
         comp.IsVisible = false; // Entity becomes invisible when entering stasis to better show the effect
         comp.DamageTaken = FixedPoint2.Zero;
-        comp.DamageHealed = 0f;
+
+        EntityManager.AddComponents(uid, comp.StasisComponents);
 
         Dirty(uid, comp);
 
@@ -163,15 +115,14 @@ public sealed partial class StasisSystem : SharedStasisSystem
         comp.IsInStasis = false;
         comp.IsVisible = true; // Entity becomes visible when exiting stasis
         comp.DamageTaken = FixedPoint2.Zero;
-        comp.DamageHealed = 0f;
+
+        EntityManager.RemoveComponents(uid, comp.StasisComponents);
 
         Dirty(uid, comp);
 
         _actionsSystem.RemoveAction(uid, comp.ExitStasisActionEntity);
         _actionsSystem.AddAction(uid, ref comp.EnterStasisActionEntity, comp.EnterStasisAction);
         _actionsSystem.SetCooldown(comp.EnterStasisActionEntity, comp.StasisCooldown);
-
-        RemComp<StasisFrozenComponent>(uid);
 
         // Send animation event to all clients
         var ev = new StasisAnimationEvent(GetNetEntity(uid), GetNetCoordinates(Transform(uid).Coordinates),
