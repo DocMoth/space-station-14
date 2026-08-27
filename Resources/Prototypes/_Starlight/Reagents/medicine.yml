@@ -373,3 +373,22 @@
           type: [ Cyclorite ]
         reagent: Respirazone
         amount: -0.5
+
+- type: reagent
+  id: HealingNanites
+  name: reagent-name-healing-nanites
+  group: Medicine
+  desc: reagent-desc-healing-nanites
+  physicalDesc: reagent-physical-desc-opaque
+  flavor: electrifying
+  color: "#70ff9b"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:HealthChange
+        damage:
+          groups:
+            Brute: -3
+          types:
+            Cold: -2
+            Heat: -2

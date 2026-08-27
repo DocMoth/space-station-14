@@ -24,3 +24,6 @@ reagent-desc-iceialin = Cool to the touch, a chem that can restore the temperatu
 
 reagent-name-respirazone = respirazone
 reagent-desc-respirazone = Used in the treatment of severe respiratory distress and blood loss. Unlike conventional oxygenation medicines, it is compatible with a wide variety of species.
+
+reagent-name-healing-nanites = healing nanites
+reagent-desc-healing-nanites = A solution containg fluid suspened healing nanites. Heal minor brute, and temperature based damage quickly.

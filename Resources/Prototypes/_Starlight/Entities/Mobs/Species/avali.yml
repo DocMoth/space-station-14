@@ -133,6 +133,18 @@
         - type: TemperatureProtection
           heatingCoefficient: 0.001
           coolingCoefficient: 0.01
+    - type: ActionGrant
+      actions:
+      - ActionNexusStore
+    - type: Store
+      name: store-preset-name-nanites
+      categories:
+      - AvaliNanites
+      currencyWhitelist:
+      - Configuration
+      balance:
+        Configuration: 3
+
 
 # Chirp!
 # Chirp!
